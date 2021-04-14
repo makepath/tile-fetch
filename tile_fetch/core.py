@@ -4,7 +4,7 @@ http://msdn.microsoft.com/en-us/library/bb259689.aspx
 '''
 from __future__ import division, print_function, absolute_import
 
-from os import path
+from os import path, makedirs
 
 import json
 import math
@@ -31,7 +31,7 @@ if path.exists(dot_file):
     with open(dot_file) as f:
         try:
             content = f.read()
-            for k, v in json.loads(f.read()).items():
+            for k, v in json.loads(content).items():
                 templates[k] = v
         except:
             print('WARNING: Unable to read JSON in .tile-fetch file')
@@ -243,6 +243,40 @@ def get_tile(lng, lat, level=8, template='osm'):
         return (x, y, level)
 
 
+def get_tiles_by_extent(xmin, ymin, xmax, ymax, levels=[8, ]):
+    '''
+    Returns a list of tile urls by extent
+    '''
+
+    for level in levels:
+        # upper-left tile
+        txmin, tymin = lng_lat_to_tile(xmin, ymax, level)
+        # lower-right tile
+        txmax, tymax = lng_lat_to_tile(xmax, ymin, level)
+
+        for y in range(tymax, tymin - 1, -1):
+            for x in range(txmin, txmax + 1, 1):
+                    yield x, y, level
+
+
+def render_tiles_by_extent(xmin, ymin, xmax, ymax, levels=[8, ], template='osm'):
+    '''
+    Returns a list of tile urls by extent
+    '''
+    for tile in get_tiles_by_extent(xmin, ymin, xmax, ymax, levels):
+        yield render_template(template, *tile)
+
+
+def save_request(request, file_path):
+    directory_path = file_path.split('/')[:-1]
+    directory_path = '/'.join(directory_path) + '/'
+    if not path.exists(directory_path):
+        makedirs(directory_path)
+    with urlrequest.urlopen(request) as response:
+        with open(file_path, 'wb') as f:
+            f.write(response.read())
+
+
 def save_tile(output_path='.', **tile_kwargs):
     '''
     save a tile to disk based on lng, lat, level, etc.
@@ -257,21 +291,42 @@ def save_tile(output_path='.', **tile_kwargs):
     output_path: echo of input path
     '''
     tile_url = get_tile(**tile_kwargs)
-    urlrequest.urlretrieve(tile_url, output_path)
+    url = urlrequest.Request(tile_url, headers={'User-Agent': 'Mozilla/5.0'})
+    save_request(url, output_path)
     return output_path
 
 
-def get_tiles_by_extent(xmin, ymin, xmax, ymax, level=8, template='osm'):
+def save_tile_by_extent(xmin, ymin, xmax, ymax,
+                        levels=[8, ], template='osm',
+                        output_path='.'):
     '''
-    Returns a list of tile urls by extent
+    save a tile to disk based on xmin, ymin, xmax, ymax, level=8, etc.
+
+    Parameters
+    ----------
+    xmin: min x value
+    ymin: min y value
+    xmax: max 
+    output_path: path indicating where tile should be written
+
+    Returns
+    -------
+    output_path: echo of input path
     '''
+    tile_list = get_tiles_by_extent(xmin, ymin, xmax, ymax, levels)
+    for tile in tile_list:
+        x, y, level = tile
+        file_path = '{output_path}/{level}/{x}/{y}'.format(
+            output_path=output_path, level=level, x=x, y=y
+        )
+        tile_url = render_template(template, *tile)
+        url = urlrequest.Request(tile_url, headers={'User-Agent': 'Mozilla/5.0'})
+        save_request(url, file_path)
+    return output_path
 
-    # upper-left tile
-    txmin, tymin = lng_lat_to_tile(xmin, ymax, level)
 
-    # lower-right tile
-    txmax, tymax = lng_lat_to_tile(xmax, ymin, level)
-
-    for y in range(tymax, tymin - 1, -1):
-        for x in range(txmin, txmax + 1, 1):
-            yield render_template(template, x, y, level)
+# [0-13]
+# python http server
+# bokeh - 
+# dart + dartbag
+# https://github.com/makepath/xarray-spatial/blob/master/xrspatial/tiles.py#L343

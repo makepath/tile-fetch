@@ -1,8 +1,6 @@
 from __future__ import print_function, absolute_import
 
-from tile_fetch.core import get_tile  # NOQA
-from tile_fetch.core import get_tiles_by_extent  # NOQA
-from tile_fetch.core import save_tile  # NOQA
+from tile_fetch.core import get_tile, render_tiles_by_extent, save_tile, save_tile_by_extent
 
 from .test import test  # NOQA
 
