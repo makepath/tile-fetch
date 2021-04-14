@@ -40,9 +40,9 @@ def test_render_tiles_by_extent():
     ymin = 29.890626
     xmax = -89.912952
     ymax = 30.057766
-    levels = [11, ]
+    level = 11
     tiles = render_tiles_by_extent(xmin, ymin, xmax,
-                                   ymax, levels, template=TEMPLATE)
+                                   ymax, level, template=TEMPLATE)
     tile_list = list(tiles)
     print(tile_list)
     assert len(tile_list) == 6
@@ -58,7 +58,7 @@ def test_save_tile_by_extent():
     tiles = None
     try:
         tiles = save_tile_by_extent(output_path=output_path, xmin=xmin, ymin=ymin, xmax=xmax,
-                                   ymax=ymax, levels=[level, ], template=TEMPLATE)
+                                   ymax=ymax, level=level, template=TEMPLATE)
         assert isinstance(tiles, str)
         assert path.exists(tiles)
         assert len(os.listdir(tiles)) == 6

@@ -243,27 +243,26 @@ def get_tile(lng, lat, level=8, template='osm'):
         return (x, y, level)
 
 
-def get_tiles_by_extent(xmin, ymin, xmax, ymax, levels=[8, ]):
+def get_tiles_by_extent(xmin, ymin, xmax, ymax, level=8):
     '''
     Returns a list of tile urls by extent
     '''
 
-    for level in levels:
-        # upper-left tile
-        txmin, tymin = lng_lat_to_tile(xmin, ymax, level)
-        # lower-right tile
-        txmax, tymax = lng_lat_to_tile(xmax, ymin, level)
+    # upper-left tile
+    txmin, tymin = lng_lat_to_tile(xmin, ymax, level)
+    # lower-right tile
+    txmax, tymax = lng_lat_to_tile(xmax, ymin, level)
 
-        for y in range(tymax, tymin - 1, -1):
-            for x in range(txmin, txmax + 1, 1):
-                    yield x, y, level
+    for y in range(tymax, tymin - 1, -1):
+        for x in range(txmin, txmax + 1, 1):
+                yield x, y, level
 
 
-def render_tiles_by_extent(xmin, ymin, xmax, ymax, levels=[8, ], template='osm'):
+def render_tiles_by_extent(xmin, ymin, xmax, ymax, level=8, template='osm'):
     '''
     Returns a list of tile urls by extent
     '''
-    for tile in get_tiles_by_extent(xmin, ymin, xmax, ymax, levels):
+    for tile in get_tiles_by_extent(xmin, ymin, xmax, ymax, level):
         yield render_template(template, *tile)
 
 
