@@ -2,12 +2,11 @@
 Mostly direct port of awesome article by Joe Schwartz
 http://msdn.microsoft.com/en-us/library/bb259689.aspx
 '''
-from __future__ import division, print_function, absolute_import
-
 from os import path, makedirs
 
 import json
 import math
+import requests
 
 try:
     import urllib.request as urlrequest
@@ -255,7 +254,7 @@ def get_tiles_by_extent(xmin, ymin, xmax, ymax, level=8):
 
     for y in range(tymax, tymin - 1, -1):
         for x in range(txmin, txmax + 1, 1):
-                yield x, y, level
+            yield x, y
 
 
 def render_tiles_by_extent(xmin, ymin, xmax, ymax, level=8, template='osm'):
@@ -266,14 +265,17 @@ def render_tiles_by_extent(xmin, ymin, xmax, ymax, level=8, template='osm'):
         yield render_template(template, *tile)
 
 
-def save_request(request, file_path):
+def save_request(tile_url, file_path):
+    response = requests.get(tile_url)
+    data = response.content
+
     directory_path = file_path.split('/')[:-1]
     directory_path = '/'.join(directory_path) + '/'
     if not path.exists(directory_path):
         makedirs(directory_path)
-    with urlrequest.urlopen(request) as response:
-        with open(file_path, 'wb') as f:
-            f.write(response.read())
+
+    with open(file_path, 'wb') as f:
+        f.write(data)
 
 
 def save_tile(output_path='.', **tile_kwargs):
@@ -290,13 +292,12 @@ def save_tile(output_path='.', **tile_kwargs):
     output_path: echo of input path
     '''
     tile_url = get_tile(**tile_kwargs)
-    url = urlrequest.Request(tile_url, headers={'User-Agent': 'Mozilla/5.0'})
-    save_request(url, output_path)
+    save_request(tile_url, output_path)
     return output_path
 
 
 def save_tile_by_extent(xmin, ymin, xmax, ymax,
-                        levels=[8, ], template='osm',
+                        level=8, template='osm',
                         output_path='.'):
     '''
     save a tile to disk based on xmin, ymin, xmax, ymax, level=8, etc.
@@ -312,20 +313,12 @@ def save_tile_by_extent(xmin, ymin, xmax, ymax,
     -------
     output_path: echo of input path
     '''
-    tile_list = get_tiles_by_extent(xmin, ymin, xmax, ymax, levels)
+    tile_list = get_tiles_by_extent(xmin, ymin, xmax, ymax, level)
     for tile in tile_list:
-        x, y, level = tile
+        x, y = tile
         file_path = '{output_path}/{level}/{x}/{y}'.format(
             output_path=output_path, level=level, x=x, y=y
         )
         tile_url = render_template(template, *tile)
-        url = urlrequest.Request(tile_url, headers={'User-Agent': 'Mozilla/5.0'})
-        save_request(url, file_path)
+        save_request(tile_url, file_path)
     return output_path
-
-
-# [0-13]
-# python http server
-# bokeh - 
-# dart + dartbag
-# https://github.com/makepath/xarray-spatial/blob/master/xrspatial/tiles.py#L343
