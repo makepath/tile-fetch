@@ -306,7 +306,7 @@ def save_tile_by_extent(xmin, ymin, xmax, ymax,
     ----------
     xmin: min x value
     ymin: min y value
-    xmax: max 
+    xmax: max
     output_path: path indicating where tile should be written
 
     Returns
@@ -319,6 +319,6 @@ def save_tile_by_extent(xmin, ymin, xmax, ymax,
         file_path = '{output_path}/{level}/{x}/{y}'.format(
             output_path=output_path, level=level, x=x, y=y
         )
-        tile_url = render_template(template, *tile)
+        tile_url = render_template(template, *tile, z=level)
         save_request(tile_url, file_path)
     return output_path
