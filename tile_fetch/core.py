@@ -254,7 +254,7 @@ def get_tiles_by_extent(xmin, ymin, xmax, ymax, level=8):
 
     for y in range(tymax, tymin - 1, -1):
         for x in range(txmin, txmax + 1, 1):
-            yield x, y
+            yield x, y, level, tile_to_quad(x, y, level)
 
 
 def render_tiles_by_extent(xmin, ymin, xmax, ymax, level=8, template='osm'):
