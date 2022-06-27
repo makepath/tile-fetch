@@ -1,3 +1,6 @@
+# DEPRECATED!!!!
+This project is now deprecated...take a look at mapshader !(https://github.com/makepath/mapshader) for similiar functionality
+
 # tile-fetch
 Small and simple library for getting map tiles from popular tile map services.
 
